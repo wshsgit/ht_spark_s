@@ -12,10 +12,10 @@
         <module name="testKafkaSparkStreaming" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="1.8">
+    <bytecodeTargetLevel>
+      <module name="ht_spark" target="1.5" />
       <module name="logSession" target="1.5" />
       <module name="sparkStreamingOffset" target="1.5" />
-      <module name="streaming_kafka" target="1.5" />
       <module name="streamingagina_kafka" target="1.5" />
       <module name="testKafkaSparkStreaming" target="1.7" />
     </bytecodeTargetLevel>
