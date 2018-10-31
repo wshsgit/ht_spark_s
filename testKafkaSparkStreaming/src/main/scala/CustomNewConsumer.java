@@ -13,7 +13,7 @@ public class CustomNewConsumer {
         // 定义kakfa 服务的地址，不需要将所有broker指定上
         props.put("bootstrap.servers", "master01:9092,slave02:9092,slave03:9092");
         // 制定consumer group
-        props.put("group.id", "answer");
+        props.put("group.id", "answerrecord");
         // 是否自动确认offset
         props.put("enable.auto.commit", "true");
         // 自动确认offset的时间间隔
@@ -26,7 +26,7 @@ public class CustomNewConsumer {
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
 
         // 指定要消费的topic, 可同时处理多个
-        consumer.subscribe(Arrays.asList("tzsource", "taozhi"));
+        consumer.subscribe(Arrays.asList("tzanswerrecord"));
 
         while (true) {
             // 读取数据，读取超时时间为100ms
@@ -34,18 +34,25 @@ public class CustomNewConsumer {
 
             for (ConsumerRecord<String, String> record : records) {
                 String[] array = record.value().toString().split(",");
+
                 String id = array[0];
                 String subjectid = array[1];
                 String testpaperid = array[2];
                 String userid = array[3];
                 String questionid = array[4];
-                String createtime = array[5];
+                String subtime = array[5];
                 String pointid = array[6];
                 String isright = array[7];
-                String rowkey = id+"_"+subjectid+"_"+testpaperid+"_"+userid+"_"+questionid+"_"+createtime;
+                String rowkey = id+"_"+subjectid+"_"+testpaperid+"_"+userid+"_"+questionid+"_"+subtime;//-->subtime
                 System.out.println(rowkey);
 //                Rowkey: subjectid + testpaperid + userid + questionid + createtime
-			Kafka_hbase.insertData("t_answerrecord","p",rowkey,pointid,isright);
+                //添加指定的rowkey的数据，和mysql保持同步
+                Kafka_hbase.insertData("t_answerrecord","p",rowkey,pointid,isright);
+
+                //删除指定的rowkey的数据，和mysql保持同步
+//                Kafka_hbase.deleteRow("t_answerrecord",rowkey);
+                //修改指定的rowkey的数据，和mysql同步
+//                Kafka_hbase.updateData("t_answerrecord","p",rowkey,pointid,isright);
                 System.out.printf("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
             }
         }
