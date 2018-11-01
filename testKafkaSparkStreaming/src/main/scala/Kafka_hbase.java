@@ -72,6 +72,73 @@ public class Kafka_hbase {
         }
         System.out.println("end create table ......");
     }
+    public static int QueryByRowkey(String tableName, String rowKey,String lie) {
+
+        HTablePool pool = new HTablePool(configuration, 1000);
+        int h_value=0;
+        try {
+            FilterList filterList = new FilterList();
+
+            RowFilter filter1 = new RowFilter(CompareFilter.CompareOp.LESS_OR_EQUAL, new BinaryComparator(Bytes.toBytes(rowKey)));
+            filterList.addFilter(filter1);
+            Filter filter2 = new QualifierFilter(CompareFilter.CompareOp.LESS_OR_EQUAL, new  BinaryComparator(Bytes.toBytes(lie)));
+            filterList.addFilter(filter2);
+
+            Scan scan = new Scan();
+            scan.setFilter(filterList);
+//            Get scan = new Get(rowKey.getBytes());// 根据rowkey查询
+            //如今应用的api版本中pool.getTable返回的类型是HTableInterface ，无法强转为HTable
+            ResultScanner resultScanner = pool.getTable(tableName).getScanner(scan);
+
+//            System.out.println("获得到rowkey:" + results.toString());
+            for (Result result : resultScanner) {
+                System.out.println("获得到rowkey:" + new String(result.getRow()));
+                for (KeyValue keyValue : result.raw()) {
+                    System.out.println("列：" + new String(keyValue.getFamily())
+                            + "====值:" + new String(keyValue.getValue()));
+                    String value = new String(keyValue.getValue());
+
+                    if (value==null ||"".equals(value)){
+                        value="0";
+                    }
+
+                    h_value=Integer.parseInt(value);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return  h_value;
+    }
+    /**
+     * 插入sum数据
+     *
+     * @param tableName
+     */
+    public static void insertDataSum(String tableName,String rowkey,String s,String q_count,String q_count_value,String q_r_count,String q_r_count_value,
+                                     String p_count,String p_count_value,String p_r_count,String p_r_count_value,
+                                     String q,String qid_0,String qid_0_value,String qid,String qid_value,
+                                     String p,String pid_0,String pid_0_value,String pid,String pid_value) {
+        System.out.println("start insert data ......");
+        HTablePool pool = new HTablePool(configuration, 1000);
+        Put put = new Put(rowkey.getBytes());// 一个PUT代表一行数据，再NEW一个PUT表示第二行数据,每行一个唯一的ROWKEY，此处rowkey为put构造方法中传入的值
+        put.add(s.getBytes(), q_count.getBytes(), q_count_value.getBytes());// 本行数据的第一列
+        put.add(s.getBytes(), q_r_count.getBytes(), q_r_count_value.getBytes());// 本行数据的第二列
+        put.add(s.getBytes(), p_count.getBytes(), p_count_value.getBytes());// 本行数据的第一列
+        put.add(s.getBytes(), p_r_count.getBytes(), p_r_count_value.getBytes());// 本行数据的第二列
+        put.add(q.getBytes(), qid_0.getBytes(), qid_0_value.getBytes());// 本行数据的第一列
+        put.add(q.getBytes(), qid.getBytes(), qid_value.getBytes());// 本行数据的第二列
+        put.add(p.getBytes(), pid_0.getBytes(), pid_0_value.getBytes());// 本行数据的第一列
+        put.add(p.getBytes(), pid.getBytes(), pid_value.getBytes());// 本行数据的第二列
+        try {
+            //如今应用的api版本中pool.getTable返回的类型是HTableInterface ，无法强转为HTable
+            pool.getTable(tableName).put(put);
+        }catch (Exception e){
+
+        }
+        System.out.println("end insert data ......");
+
+    }
 
     /**
      * 插入数据
