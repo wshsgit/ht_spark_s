@@ -39,9 +39,10 @@ public class UserPaperSummary {
             ConsumerRecords<String, String> records = consumer.poll(100);
 
             for (ConsumerRecord<String, String> record : records) {
-                String[] array = record.value().toString().split("\",\"");
+                String[] array = record.value().toString().split(",");
 
-                String id = array[0];
+                String id = array[0].replace("\"", "");
+                System.out.println(id);
                 int userid;
                 int isright;
                 int pid_value;
@@ -50,16 +51,18 @@ public class UserPaperSummary {
                 int qid_0_value;
                 int h_q_r_count_value = 0;
                 int h_p_r_count_value = 0;
-
-                System.out.println("".isEmpty());
-                if ( array[1].isEmpty()|| "".equals(array[1])) {
+                System.out.println(array[1].toString()=="  ");
+                System.out.println(array[1].toString()==null);
+                System.out.println(array[1].toString().length());
+                System.out.println("  ".equals(array[1].toString()));
+                if ("".equals(array[1].replace("\"", "").toString())) {
                     userid = 000000;
                 }else {
-                    userid = Integer.parseInt(array[1]);
+                    userid = Integer.parseInt(array[1].replace("\"", ""));
                 }
-                int testpaperid = Integer.parseInt(array[2].toString());
-                int questionid = Integer.parseInt(array[3].toString());
-                int pointid = Integer.parseInt(array[4].toString());
+                int testpaperid = Integer.parseInt(array[2].replace("\"", "").toString());
+                int questionid = Integer.parseInt(array[3].replace("\"", "").toString());
+                int pointid = Integer.parseInt(array[4].replace("\"", "").toString());
                 String qid = questionid + "";
                 String qid_0 = questionid + "";
                 String pid = pointid + "";
@@ -68,10 +71,10 @@ public class UserPaperSummary {
                 String rowkey = userid + "_" + testpaperid;
                 System.out.println(rowkey);
 
-                if (array[5].isEmpty()||"\"".equals(array[5])) {
+                if ("".equals(array[5].replace("\"", "").toString())) {
                     isright = 0;
                 } else {
-                    isright = Integer.parseInt(array[5].toString());
+                    isright = Integer.parseInt(array[5].replace("\"", "").toString());
                 }
                 int h_pid_0_value = Kafka_hbase.QueryByRowkey("user_paper_summary", rowkey, pid_0);
                 int h_qid_0_value = Kafka_hbase.QueryByRowkey("user_paper_summary", rowkey, qid_0);

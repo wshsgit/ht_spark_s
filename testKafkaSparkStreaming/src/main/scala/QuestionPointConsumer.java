@@ -34,16 +34,16 @@ public class QuestionPointConsumer {
             for (ConsumerRecord<String, String> record : records) {
                 String[] array = record.value().toString().split(",");
 
-                String id = array[0];
-                int questionid = Integer.parseInt(array[1]);
-                int pointid = Integer.parseInt(array[2]);
+                String id = array[0].replace("\"", "");
+                int questionid = Integer.parseInt(array[1].replace("\"", ""));
+                int pointid = Integer.parseInt(array[2].replace("\"", ""));
                 String rowkey = questionid+"_"+pointid;
                 System.out.println(rowkey);
 //                Rowkey:  questionid + pointid
                 //添加指定的rowkey的数据，和mysql保持同步
-			    Kafka_hbase.insertData("t_question_point","qp",rowkey,"coeffcient","0");
+                Kafka_hbase.insertData("t_question_point","qp",rowkey,"coeffcient","0");
 
-			    //删除指定的rowkey的数据，和mysql保持同步
+                //删除指定的rowkey的数据，和mysql保持同步
 //                Kafka_hbase.deleteRow("t_answerrecord",rowkey);
                 //修改指定的rowkey的数据，和mysql同步
 //                Kafka_hbase.updateData("t_answerrecord","p",rowkey,pointid,isright);
