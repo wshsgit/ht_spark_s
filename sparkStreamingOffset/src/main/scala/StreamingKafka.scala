@@ -108,7 +108,7 @@ object StreamingKafka {
       rdd
     }
 
-    textKafkaDStream2.map(s => "key:"+s._1 + " value:"+s._2).foreachRDD{rdd =>
+    textKafkaDStream2.map(s => "key:" + s._1 + " value:" + s._2).foreachRDD{rdd =>
 
       //RDD操作
       rdd.foreachPartition{items =>

@@ -19,6 +19,22 @@ public class Kafka_hbase {
         configuration = HBaseConfiguration.create();
         configuration.set("hbase.zookeeper.property.clientPort", "2181");
         configuration.set("hbase.zookeeper.quorum", "master01,slave02,slave03");
+        configuration.set("hbase.rootdir", "hdfs://master01:9000/hbase");
+
+        /*configuration.set("hbase.rpc.timeout", "3000");
+        configuration.set("hbase.client.operation.timeout", "4000");
+        configuration.set("hbase.client.scanner.timeout.period", "5000");
+        configuration.set("ipc.socket.timeout", "6000");
+        configuration.set("hbase.client.pause", "50");
+        configuration.set("hbase.client.retries.number", "3");
+
+        configuration.set("hbase.regionserver.lease.period", "20000");
+
+        configuration.set("zookeeper.recovery.retry", "3");
+        configuration.set("zookeeper.recovery.retry.intervalmill", "200");*/
+
+        /*configuration.set("hbase.zookeeper.quorum", "master01:2181,slave02:2181,slave03:2181");
+        configuration.set("hbase.rootdir", "hdfs://master01:9000/hbase");*/
     }
 
     public static void main(String[] args) {
@@ -26,10 +42,10 @@ public class Kafka_hbase {
       Rowkey: subjectid + testpaperid + userid + questionid + createtime
       ColumnFamily:p
        pointid值为具体的列名*/
-//        createTable("t_question_point");
+          createTable("t_question_point","qp");
 //        createTable("t_answerrecord");
 //         insertData("t_answerrecord","p","123456","point","0");
-        QueryAll("t_question_point");
+        //QueryAll("t_question_point");
 //         QueryByCondition1("t_question_point","\"1001\"_");
 //        QueryByRowkey("t_question_point", "\"1001\"_", "coeffcient");
 //        QueryByCondition2("t_answerrecord");
@@ -45,7 +61,7 @@ public class Kafka_hbase {
      *
      * @param tableName
      */
-    public static void createTable(String tableName) {
+    public static void createTable(String tableName,String columnFamily) {
         System.out.println("start create table ......");
         try {
             HBaseAdmin hBaseAdmin = null;
@@ -60,7 +76,7 @@ public class Kafka_hbase {
                 System.out.println(tableName + " is exist,detele....");
             }
             HTableDescriptor tableDescriptor = new HTableDescriptor(tableName);
-            tableDescriptor.addFamily(new HColumnDescriptor("qp"));
+            tableDescriptor.addFamily(new HColumnDescriptor(columnFamily));
 //            tableDescriptor.addFamily(new HColumnDescriptor("q"));
 //            tableDescriptor.addFamily(new HColumnDescriptor("p"));
 

@@ -32,7 +32,7 @@ object KafkaStreaming{
     val ssc = new StreamingContext(conf, Seconds(1))
 
     //创建topic
-    val brobrokers = "192.168.1.101:9092,192.168.1.102:9092,192.168.1.103:9092"
+    val brobrokers = "master01:9092,slave02:9092,slave03:9092"
     val sourcetopic="tzsource";
     val targettopic="zhaozhi";
 

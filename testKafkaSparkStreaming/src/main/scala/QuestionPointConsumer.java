@@ -1,3 +1,4 @@
+import com.alibaba.fastjson.JSONObject;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -10,7 +11,9 @@ public class QuestionPointConsumer {
     public static void main(String[] args) {
         Properties props = new Properties();
         // 定义kakfa 服务的地址，不需要将所有broker指定上
+        //props.put("bootstrap.servers", "master01:9092,slave02:9092,slave03:9092");
         props.put("bootstrap.servers", "master01:9092,slave02:9092,slave03:9092");
+
         // 制定consumer group
         props.put("group.id", "questionpoint");
         // 是否自动确认offset
@@ -32,13 +35,14 @@ public class QuestionPointConsumer {
             ConsumerRecords<String, String> records = consumer.poll(100);
 
             for (ConsumerRecord<String, String> record : records) {
-                String[] array = record.value().toString().split(",");
+                JSONObject jsonObject = JSONObject.parseObject(record.value());
 
-                String id = array[0].replace("\"", "");
-                int questionid = Integer.parseInt(array[1].replace("\"", ""));
-                int pointid = Integer.parseInt(array[2].replace("\"", ""));
-                String rowkey = questionid+"_"+pointid;
+                Long id = jsonObject.getLong("id");
+                Long questionid = jsonObject.getLong("QuestionId");
+                Long pointid = jsonObject.getLong("PointId");
+                String rowkey = questionid + "_" + pointid;
                 System.out.println(rowkey);
+                rowkey = rowkey.replace("\"","");
 //                Rowkey:  questionid + pointid
                 //添加指定的rowkey的数据，和mysql保持同步
                 Kafka_hbase.insertData("t_question_point","qp",rowkey,"coeffcient","0");

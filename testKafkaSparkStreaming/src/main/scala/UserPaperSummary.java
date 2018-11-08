@@ -8,6 +8,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.hadoop.hbase.client.Put;
+import com.alibaba.fastjson.JSONObject;
 import scala.Int;
 
 import java.io.IOException;
@@ -22,6 +23,7 @@ public class UserPaperSummary {
         Properties props = new Properties();
         // 定义kakfa 服务的地址，不需要将所有broker指定上
         props.put("bootstrap.servers", "master01:9092,slave02:9092,slave03:9092");
+        //props.put("bootstrap.servers", "59.110.216.70:9092,47.95.1.29:9092,59.110.166.163:9092");
         // 制定consumer group
         props.put("group.id", "user_paper_summary");
         // 是否自动确认offset
@@ -47,20 +49,23 @@ public class UserPaperSummary {
             for (ConsumerRecord<String, String> record : records) {
 
                 //id,testpaperuser_id,questionid,courseid,paperid,userid,
-                String recordValue = record.value().toString().replace("\"", "");
-                String[] array = record.value().toString().split(",");
-                if (array.length < 2) {
+
+                JSONObject jsonObject = JSONObject.parseObject(record.value());
+
+                Long id = jsonObject.getLong("id");
+                Long testpaper_user_id = jsonObject.getLong("TestPaper_User_ID");
+                Long question_id = jsonObject.getLong("QuestionID");
+                Long course_id = jsonObject.getLong("BatchCourses_ID");
+                Long testpaper_id = jsonObject.getLong("TestPaper_ID");
+                Long user_id = jsonObject.getLong("CreateUser");
+                Integer isright = jsonObject.getInteger("IsRight");
+
+                if(isright==null){
                     continue;
                 }
-                String id = array[0];
-                Long testpaper_user_id = Long.valueOf(array[1]);
-                Long question_id = Long.valueOf(array[2]);
-                Long course_id = Long.valueOf(array[3]);
-                Long testpaper_id = Long.valueOf(array[4]);
-                Long user_id = Long.valueOf(array[5]);
-                int isright = Integer.valueOf(array[6]);
 
-                System.out.println(id);
+                //System.out.println(id);int isright = Integer.valueOf(array[6]);
+
                 /***
                  * 试卷总题数（不含重复）
                  */
