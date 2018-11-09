@@ -49,7 +49,6 @@ public class UserPaperSummary {
             for (ConsumerRecord<String, String> record : records) {
 
                 //id,testpaperuser_id,questionid,courseid,paperid,userid,
-
                 JSONObject jsonObject = JSONObject.parseObject(record.value());
 
                 Long id = jsonObject.getLong("id");
@@ -60,7 +59,7 @@ public class UserPaperSummary {
                 Long user_id = jsonObject.getLong("CreateUser");
                 Integer isright = jsonObject.getInteger("IsRight");
 
-                if(isright==null){
+                if(isright == null||testpaper_id == null){
                     continue;
                 }
 
@@ -90,16 +89,11 @@ public class UserPaperSummary {
                  * 做错知识点数
                  */
                 int p_f_count = 0;
-                /*System.out.println(array[1].toString()=="  ");
-                System.out.println(array[1].toString()==null);
-                System.out.println(array[1].toString().length());
-                System.out.println("  ".equals(array[1].toString()));*/
 
                 HBaseUtils hBaseUtils = new HBaseUtils();
-                //ResultScanner results = Kafka_hbase.QueryByCondition1("t_question_point", question_id+"_" );
-                ResultScanner point_results = null;
+                ResultScanner current_question_points_result = null;
                 try {
-                    point_results = hBaseUtils.PrefixFilter(hBase_questionpoint_table, question_id + "_");
+                    current_question_points_result = hBaseUtils.PrefixFilter(hBase_questionpoint_table, question_id + "_");
                 } catch (Exception e) {
                     e.printStackTrace();
                     continue;
@@ -114,13 +108,13 @@ public class UserPaperSummary {
                     continue;
                 }
 
-                List<Integer> existsPointList = new ArrayList<>();
-                for (Result result : point_results) {
+                List<Integer> current_question_points = new ArrayList<>();
+                for (Result result : current_question_points_result) {
                     String question_point_rowkey = new String(result.getRow());
                     String[] strings = question_point_rowkey.split("_");
                     int pointid = Integer.parseInt(strings[1].toString());
 
-                    existsPointList.add(pointid);
+                    current_question_points.add(pointid);
 
                 }
 
@@ -145,7 +139,7 @@ public class UserPaperSummary {
                     }
                     if (family.equals("p")) {
                         if (quilifier.endsWith("_0")) {
-                            p_f_count += 1;
+                            p_f_count +=  1;
                         } else if (quilifier.endsWith("_1")) {
                             p_r_count += 1;
                         } else {
@@ -166,28 +160,41 @@ public class UserPaperSummary {
 
                 {
                     String p_family = "s";
+
+                    q_count +=1;//加上本题
+                    p_count += current_question_points.size();//这里没有剔除当前知识点和已做过的重复问题，后续完善代码
+                    if(isright==1){
+                        q_r_count +=1;
+                        p_r_count += current_question_points.size();
+                    }else{
+                        q_f_count += 1;
+                        p_f_count += current_question_points.size();
+                    }
+
+
+
                     Put q_count_put = new Put(Bytes.toBytes(rowkey));
-                    q_count_put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes("q_count"), Bytes.toBytes(q_count));
+                    q_count_put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes("q_count"), Bytes.toBytes(String.valueOf(q_count)));
                     updateCells.add(q_count_put);
 
                     Put q_r_count_put = new Put(Bytes.toBytes(rowkey));
-                    q_r_count_put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes("q_r_count"), Bytes.toBytes(q_r_count));
+                    q_r_count_put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes("q_r_count"), Bytes.toBytes(String.valueOf(q_r_count)));
                     updateCells.add(q_r_count_put);
 
                     Put q_f_count_put = new Put(Bytes.toBytes(rowkey));
-                    q_f_count_put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes("q_f_count"), Bytes.toBytes(q_f_count));
+                    q_f_count_put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes("q_f_count"), Bytes.toBytes(String.valueOf(q_f_count)));
                     updateCells.add(q_f_count_put);
 
                     Put p_count_put = new Put(Bytes.toBytes(rowkey));
-                    p_count_put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes("p_count"), Bytes.toBytes(p_count));
+                    p_count_put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes("p_count"), Bytes.toBytes(String.valueOf(p_count)));
                     updateCells.add(p_count_put);
 
                     Put p_r_count_put = new Put(Bytes.toBytes(rowkey));
-                    p_r_count_put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes("p_r_count"), Bytes.toBytes(p_r_count));
+                    p_r_count_put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes("p_r_count"), Bytes.toBytes(String.valueOf(p_r_count)));
                     updateCells.add(p_r_count_put);
 
                     Put p_f_count_put = new Put(Bytes.toBytes(rowkey));
-                    p_f_count_put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes("p_f_count"), Bytes.toBytes(p_f_count));
+                    p_f_count_put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes("p_f_count"), Bytes.toBytes(String.valueOf(p_f_count)));
                     updateCells.add(p_f_count_put);
                 }
 
@@ -206,7 +213,7 @@ public class UserPaperSummary {
                         if (q_columns.equals(hBaseCellModel.Quilifier) || q_columns_fix.equals(hBaseCellModel.Quilifier) ) {
                             numCellValue = Integer.valueOf(hBaseCellModel.CellValue) + numCellValue;
                             Put put = new Put(Bytes.toBytes(rowkey));
-                            put.addColumn(Bytes.toBytes(hBaseCellModel.Family), Bytes.toBytes(hBaseCellModel.Quilifier), Bytes.toBytes(numCellValue));
+                            put.addColumn(Bytes.toBytes(hBaseCellModel.Family), Bytes.toBytes(hBaseCellModel.Quilifier), Bytes.toBytes(String.valueOf(numCellValue)));
                             updateCells.add(put);
 
                             isExistsQuestion = true;
@@ -214,17 +221,17 @@ public class UserPaperSummary {
                     }
                     if(isExistsQuestion ==false){
                         Put put = new Put(Bytes.toBytes(rowkey));
-                        put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes(q_columns), Bytes.toBytes(numCellValue));
+                        put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes(q_columns), Bytes.toBytes(String.valueOf(numCellValue)));
                         updateCells.add(put);
 
                         Put put_fix = new Put(Bytes.toBytes(rowkey));
-                        put_fix.addColumn(Bytes.toBytes(p_family), Bytes.toBytes(q_columns_fix), Bytes.toBytes(numCellValue));
+                        put_fix.addColumn(Bytes.toBytes(p_family), Bytes.toBytes(q_columns_fix), Bytes.toBytes(String.valueOf(numCellValue)));
                         updateCells.add(put_fix);
                     }
                 }
 
                 {
-                    for (Integer pointid : existsPointList) {
+                    for (Integer pointid : current_question_points) {
                         Integer numCellValue = 1;
                         String p_family = "p";
                         String p_quilifier = pointid.toString();
@@ -238,7 +245,7 @@ public class UserPaperSummary {
                             if (hBaseCellModel.Quilifier.equals(pointid) || hBaseCellModel.Quilifier.equals(p_quilifier)) {
                                 numCellValue = Integer.valueOf(hBaseCellModel.CellValue) + numCellValue;
                                 Put put = new Put(Bytes.toBytes(rowkey));
-                                put.addColumn(Bytes.toBytes(hBaseCellModel.Family), Bytes.toBytes(hBaseCellModel.Quilifier), Bytes.toBytes(numCellValue));
+                                put.addColumn(Bytes.toBytes(hBaseCellModel.Family), Bytes.toBytes(hBaseCellModel.Quilifier), Bytes.toBytes(String.valueOf(numCellValue)));
                                 updateCells.add(put);
                                 isExists = true;
                                 break;
@@ -247,11 +254,11 @@ public class UserPaperSummary {
                         if (isExists == false) {
 
                             Put put = new Put(Bytes.toBytes(rowkey));
-                            put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes(pointid.toString()), Bytes.toBytes(numCellValue));
+                            put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes(pointid.toString()), Bytes.toBytes(String.valueOf(numCellValue)));
                             updateCells.add(put);
 
                             Put put_fix = new Put(Bytes.toBytes(rowkey));
-                            put_fix.addColumn(Bytes.toBytes(p_family), Bytes.toBytes(p_quilifier), Bytes.toBytes(numCellValue));
+                            put_fix.addColumn(Bytes.toBytes(p_family), Bytes.toBytes(p_quilifier), Bytes.toBytes(String.valueOf(numCellValue)));
                             updateCells.add(put_fix);
                         }
                     }
