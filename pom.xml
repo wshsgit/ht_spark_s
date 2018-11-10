@@ -13,6 +13,7 @@
         <module>testKafkaSparkStreaming</module>
         <module>sparkStreamingOffset</module>
         <module>logSession</module>
+        <module>Ht_Utils</module>
     </modules>
 
     <properties>
@@ -66,8 +67,6 @@
             <artifactId>fastjson</artifactId>
             <version>1.2.39</version>
         </dependency>
-
-
 
     </dependencies>
 

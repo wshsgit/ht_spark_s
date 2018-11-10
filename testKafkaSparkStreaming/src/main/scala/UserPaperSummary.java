@@ -59,7 +59,7 @@ public class UserPaperSummary {
                 Long user_id = jsonObject.getLong("CreateUser");
                 Integer isright = jsonObject.getInteger("IsRight");
 
-                if(isright == null||testpaper_id == null){
+                if(isright == null||testpaper_user_id == null){
                     continue;
                 }
 
@@ -208,10 +208,9 @@ public class UserPaperSummary {
                         q_columns_fix = question_id + "_1";
                     }
                     boolean isExistsQuestion = false;
-                    Integer numCellValue = 1;
                     for (HBaseCellModel hBaseCellModel : questionCellModels) {
                         if (q_columns.equals(hBaseCellModel.Quilifier) || q_columns_fix.equals(hBaseCellModel.Quilifier) ) {
-                            numCellValue = Integer.valueOf(hBaseCellModel.CellValue) + numCellValue;
+                            Integer numCellValue = Integer.valueOf(hBaseCellModel.CellValue) + 1;
                             Put put = new Put(Bytes.toBytes(rowkey));
                             put.addColumn(Bytes.toBytes(hBaseCellModel.Family), Bytes.toBytes(hBaseCellModel.Quilifier), Bytes.toBytes(String.valueOf(numCellValue)));
                             updateCells.add(put);
@@ -221,18 +220,17 @@ public class UserPaperSummary {
                     }
                     if(isExistsQuestion ==false){
                         Put put = new Put(Bytes.toBytes(rowkey));
-                        put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes(q_columns), Bytes.toBytes(String.valueOf(numCellValue)));
+                        put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes(q_columns), Bytes.toBytes(String.valueOf(1)));
                         updateCells.add(put);
 
                         Put put_fix = new Put(Bytes.toBytes(rowkey));
-                        put_fix.addColumn(Bytes.toBytes(p_family), Bytes.toBytes(q_columns_fix), Bytes.toBytes(String.valueOf(numCellValue)));
+                        put_fix.addColumn(Bytes.toBytes(p_family), Bytes.toBytes(q_columns_fix), Bytes.toBytes(String.valueOf(1)));
                         updateCells.add(put_fix);
                     }
                 }
 
                 {
                     for (Integer pointid : current_question_points) {
-                        Integer numCellValue = 1;
                         String p_family = "p";
                         String p_quilifier = pointid.toString();
                         boolean isExists = false;
@@ -242,8 +240,8 @@ public class UserPaperSummary {
                             p_quilifier = p_quilifier + "_1";
                         }
                         for (HBaseCellModel hBaseCellModel : pointCellModels) {
-                            if (hBaseCellModel.Quilifier.equals(pointid) || hBaseCellModel.Quilifier.equals(p_quilifier)) {
-                                numCellValue = Integer.valueOf(hBaseCellModel.CellValue) + numCellValue;
+                            if (hBaseCellModel.Quilifier.equals(pointid.toString()) || hBaseCellModel.Quilifier.equals(p_quilifier)) {
+                                Integer numCellValue = Integer.valueOf(hBaseCellModel.CellValue) + 1;
                                 Put put = new Put(Bytes.toBytes(rowkey));
                                 put.addColumn(Bytes.toBytes(hBaseCellModel.Family), Bytes.toBytes(hBaseCellModel.Quilifier), Bytes.toBytes(String.valueOf(numCellValue)));
                                 updateCells.add(put);
@@ -254,11 +252,11 @@ public class UserPaperSummary {
                         if (isExists == false) {
 
                             Put put = new Put(Bytes.toBytes(rowkey));
-                            put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes(pointid.toString()), Bytes.toBytes(String.valueOf(numCellValue)));
+                            put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes(pointid.toString()), Bytes.toBytes(String.valueOf(1)));
                             updateCells.add(put);
 
                             Put put_fix = new Put(Bytes.toBytes(rowkey));
-                            put_fix.addColumn(Bytes.toBytes(p_family), Bytes.toBytes(p_quilifier), Bytes.toBytes(String.valueOf(numCellValue)));
+                            put_fix.addColumn(Bytes.toBytes(p_family), Bytes.toBytes(p_quilifier), Bytes.toBytes(String.valueOf(1)));
                             updateCells.add(put_fix);
                         }
                     }

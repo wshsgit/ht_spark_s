@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/Ht_Utils/Ht_Utils.iml" filepath="$PROJECT_DIR$/Ht_Utils/Ht_Utils.iml" />
       <module fileurl="file://$PROJECT_DIR$/ht_spark.iml" filepath="$PROJECT_DIR$/ht_spark.iml" />
       <module fileurl="file://$PROJECT_DIR$/logSession/logSession.iml" filepath="$PROJECT_DIR$/logSession/logSession.iml" />
       <module fileurl="file://$PROJECT_DIR$/sparkStreamingOffset/sparkStreamingOffset.iml" filepath="$PROJECT_DIR$/sparkStreamingOffset/sparkStreamingOffset.iml" />
