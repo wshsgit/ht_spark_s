@@ -48,8 +48,6 @@ public class Customs_Single_Processer {
     long id;
     String testpaper_user_id;
     String question_id;
-    long course_id;
-    long testpaper_id;
     String user_id;
     int isright;
     HBaseUtils hBaseUtils = new HBaseUtils();
@@ -58,7 +56,7 @@ public class Customs_Single_Processer {
     HashMap<Long,Long> paper_customs_map = new HashMap<>();
     List<Integer> current_question_points = question_point_map.get(question_id);
 
-    public Customs_Single_Processer(ConsumerRecord<String, String> record)
+    public Customs_Single_Processer(ConsumerRecord<String, String> record, HashMap<Long,List<Integer>> question_point_map,HashMap<Long,Long> paper_customs_map)
     {
         //id,testpaperuser_id,questionid,courseid,paperid,userid,
         JSONObject jsonObject = JSONObject.parseObject(record.value());
@@ -66,10 +64,13 @@ public class Customs_Single_Processer {
         id = jsonObject.getLong("id");
         Long testPaper_User_ID = jsonObject.getLong("TestPaper_User_ID");
         Long questionID = jsonObject.getLong("QuestionID");
-        course_id = jsonObject.getLong("BatchCourses_ID");
-        testpaper_id = jsonObject.getLong("TestPaper_ID");
+        Long course_id = jsonObject.getLong("BatchCourses_ID");
+        Long testpaper_id = jsonObject.getLong("TestPaper_ID");
         Long createUser = jsonObject.getLong("CreateUser");
         Integer isRight = jsonObject.getInteger("IsRight");
+
+        this.paper_customs_map = paper_customs_map;
+        this.question_point_map = question_point_map;
 
         if(isRight == null||testPaper_User_ID == null||questionID==null||createUser == null){
             return;
@@ -80,7 +81,7 @@ public class Customs_Single_Processer {
             user_id = createUser.toString();
             isright = isRight;
         }
-
+        current_question_points = question_point_map.get(questionID);
         if (current_question_points==null||current_question_points.size()==0) {
             ResultScanner current_question_points_result = null;
             try {
@@ -180,7 +181,7 @@ public class Customs_Single_Processer {
         }
     }
 
-    public void Process_Common(String hBase_TableName,String rowKey)
+    private void Process_Common(String hBase_TableName,String rowKey)
     {
         Result paperSummaryResult = null;
         try {
@@ -334,8 +335,6 @@ public class Customs_Single_Processer {
                     updateCells.add(put_fix);
                 }
             }
-
-            //System.out.printf("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
         }
 
         try {
