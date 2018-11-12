@@ -75,7 +75,7 @@ public class JRedisUtil {
             lock.lock();    //防止吃初始化时多线程竞争问题
             initJedisPool();
             lock.unlock();
-            log.info("JedisPool init success！");
+            //log.info("JedisPool init success！");
         }
         return jedisPool.getResource();
     }
@@ -535,7 +535,6 @@ public class JRedisUtil {
 
     //*******************************************SortSet*******************************************//
     public class SortSet {
-
         /**
          * 向集合中增加一条记录,如果这个值已存在，这个值对应的权重将被置为新的权重
          *
@@ -579,7 +578,7 @@ public class JRedisUtil {
         }
 
         /**
-         * 获得set的长度（这个方法要重写，太没效率了）
+         * 获得set的长度（上面已经有获取集合长度的高效率的方法了，这个方法的意义何在）
          *
          * @param key
          * @return
