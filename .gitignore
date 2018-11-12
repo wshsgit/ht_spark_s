@@ -8,3 +8,5 @@ target/*
 *.iml
 out
 gen
+classes/*
+*/dependency-reduced-pom.xml

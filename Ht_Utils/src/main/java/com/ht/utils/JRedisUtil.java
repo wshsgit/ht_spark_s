@@ -57,11 +57,16 @@ public class JRedisUtil {
     private void initJedisPool() {
         JedisPoolConfig config = new JedisPoolConfig();
         config.setMaxIdle(Integer.valueOf(ConfigHelper.getProperty("redis.pool.maxIdle")));
-        config.setTestOnBorrow(Boolean.getBoolean(ConfigHelper.getProperty("redis.pool.testOnBorrow")));
-        config.setTestOnReturn(Boolean.getBoolean(ConfigHelper.getProperty("redis.pool.testOnReturn")));
+        /*config.setTestOnBorrow(Boolean.getBoolean(ConfigHelper.getProperty("redis.pool.testOnBorrow")));
+        config.setTestOnReturn(Boolean.getBoolean(ConfigHelper.getProperty("redis.pool.testOnReturn")));*/
+        config.setMinIdle(Integer.valueOf(ConfigHelper.getProperty("redis.pool.minle")));
         jedisPool = new JedisPool(
                 config,
-                ConfigHelper.getProperty("redis.ip"), Integer.valueOf(ConfigHelper.getProperty("redis.port"))
+                ConfigHelper.getProperty("redis.ip"),
+                Integer.valueOf(ConfigHelper.getProperty("redis.port")),
+                Integer.valueOf(ConfigHelper.getProperty("redis.timeout")),
+                ConfigHelper.getProperty("redis.password")
+
         );
     }
 

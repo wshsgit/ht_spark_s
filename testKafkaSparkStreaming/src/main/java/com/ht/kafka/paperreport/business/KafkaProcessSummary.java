@@ -1,18 +1,11 @@
 package com.ht.kafka.paperreport.business;
 
-import com.alibaba.fastjson.JSONObject;
-import com.ht.entity.HBaseCellModel;
 import com.ht.utils.HBaseUtils;
-import com.ht.utils.JRedisUtil;
-import org.apache.hadoop.hbase.Cell;
-import org.apache.hadoop.hbase.CellUtil;
-import org.apache.hadoop.hbase.client.Put;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.ResultScanner;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -38,19 +31,25 @@ public class KafkaProcessSummary {
 
         // 指定要消费的topic, 可同时处理多个
         consumer.subscribe(Arrays.asList("tzuser_paper_summary"));
-
+        Logger logger = LoggerFactory.getLogger(KafkaProcessSummary.class);
         HashMap<Long,List<Integer>> question_point_map = new HashMap<>();
         HashMap<Long,Long> paper_customs_map = new HashMap<>();
-
+        HBaseUtils hBaseUtils = new HBaseUtils();
         while (true) {
             // 读取数据，读取超时时间为100ms
             ConsumerRecords<String, String> records = consumer.poll(100);
-            HBaseUtils hBaseUtils = new HBaseUtils();
             for (ConsumerRecord<String, String> record : records) {
-                Customs_Single_Processer processer = new Customs_Single_Processer(record,question_point_map,paper_customs_map);
+                Customs_Single_Processer processer = null;
+                try {
+                    processer = new Customs_Single_Processer(record,question_point_map,paper_customs_map);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    continue;
+                }
                 processer.Process_PaperSummary();
                 processer.Process_Customs();
                 System.out.printf("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
+                logger.info("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
             }
         }
     }

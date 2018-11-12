@@ -56,8 +56,7 @@ public class Customs_Single_Processer {
     HashMap<Long,Long> paper_customs_map = new HashMap<>();
     List<Integer> current_question_points = question_point_map.get(question_id);
 
-    public Customs_Single_Processer(ConsumerRecord<String, String> record, HashMap<Long,List<Integer>> question_point_map,HashMap<Long,Long> paper_customs_map)
-    {
+    public Customs_Single_Processer(ConsumerRecord<String, String> record, HashMap<Long,List<Integer>> question_point_map,HashMap<Long,Long> paper_customs_map) throws Exception {
         //id,testpaperuser_id,questionid,courseid,paperid,userid,
         JSONObject jsonObject = JSONObject.parseObject(record.value());
 
@@ -73,7 +72,7 @@ public class Customs_Single_Processer {
         this.question_point_map = question_point_map;
 
         if(isRight == null||testPaper_User_ID == null||questionID==null||createUser == null){
-            return;
+            throw new Exception("消息错误，待处理");
         }
         else {
             testpaper_user_id = testPaper_User_ID.toString();
@@ -157,13 +156,12 @@ public class Customs_Single_Processer {
                     paper_customs_map.put(Long.parseLong(testpaper_user_id),customs_id);
                 }
             }
-            if (customs_id > 0) {
+            if (customs_id!= null && customs_id > 0) {
                 paper_customs_map.put(Long.valueOf(testpaper_user_id), customs_id);
+                String hBase_TableName = "t_customs_summary";
+                String rowKey = user_id  + "_" + customs_id;
+                Process_Common(hBase_TableName,rowKey);
             }
-
-            String hBase_TableName = "t_customs_summary";
-            String rowKey = user_id  + "_" + customs_id;
-            Process_Common(hBase_TableName,rowKey);
         }
         // 排行榜计算 基于redis
         {
