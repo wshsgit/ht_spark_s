@@ -155,7 +155,7 @@ public class Customs_Single_Processer {
 
         // 排行榜计算 基于redis
         {
-            if (isright==1){
+            if (isright==1 &&task_id !=null && task_id > 0){
                 String paperSummaryRank_key = "paperSummaryRank_" + task_id;
                 double paper_score = JRedisUtil.getInstance().sortSet().zscore( paperSummaryRank_key,user_id.toString());
                 if (paper_score<=0){
@@ -181,7 +181,7 @@ public class Customs_Single_Processer {
         }
         // 排行榜计算 基于redis
         {
-            if (isright==1){
+            if (isright==1 && customs_id!= null && customs_id > 0){
                 String customsRank_key = "customsRank_" + customs_id;
                 double customs_score = JRedisUtil.getInstance().sortSet().zscore( customsRank_key,user_id.toString());
                 if (customs_score<=0){
@@ -285,6 +285,15 @@ public class Customs_Single_Processer {
             Put p_f_count_put = new Put(Bytes.toBytes(rowKey));
             p_f_count_put.addColumn(Bytes.toBytes(p_family), Bytes.toBytes("p_f_count"), Bytes.toBytes(String.valueOf(p_f_count)));
             updateCells.add(p_f_count_put);
+
+            /**
+             * 第一次保存的时候存取业务数据
+             */
+            if (task_id!=null&&task_id>0 && p_count == 1) {
+                Put b_put = new Put(Bytes.toBytes(rowKey));
+                b_put.addColumn(Bytes.toBytes("b"), Bytes.toBytes("TaskID"), Bytes.toBytes(String.valueOf(task_id)));
+                updateCells.add(b_put);
+            }
         }
 
         {
@@ -350,6 +359,7 @@ public class Customs_Single_Processer {
                 }
             }
         }
+
 
         try {
             HBaseUtils.PutList(hBase_TableName,updateCells);
