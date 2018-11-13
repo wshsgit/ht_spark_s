@@ -145,7 +145,7 @@ public class Customs_Single_Processer {
             ResultScanner current_paper_customs_result = null;
             try {
                 String hBasepaper_customs_table = "t_customs_task_user_detail";
-                current_paper_customs_result = HBaseUtils.PrefixFilter(hBasepaper_customs_table, question_id + "_");
+                current_paper_customs_result = HBaseUtils.PrefixFilter(hBasepaper_customs_table, testpaper_user_id + "_");
             } catch (Exception e) {
                 e.printStackTrace();
                 return;
