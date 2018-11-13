@@ -6,7 +6,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.*;
 
 public class KafkaProcessSummary {
@@ -34,7 +33,6 @@ public class KafkaProcessSummary {
         Logger logger = LoggerFactory.getLogger(KafkaProcessSummary.class);
         HashMap<Long,List<Integer>> question_point_map = new HashMap<>();
         HashMap<Long,Long> paper_customs_map = new HashMap<>();
-        HBaseUtils hBaseUtils = new HBaseUtils();
         while (true) {
             // 读取数据，读取超时时间为100ms
             ConsumerRecords<String, String> records = consumer.poll(100);

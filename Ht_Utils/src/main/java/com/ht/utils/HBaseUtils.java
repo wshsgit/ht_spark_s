@@ -43,7 +43,7 @@ public class HBaseUtils {
     public static Admin admin = null;
     public static Connection conn = null;
 
-    public HBaseUtils() {
+    static {
         Configuration conf = HBaseConfiguration.create();
         conf.set("hbase.zookeeper.quorum", "master01:2181,slave02:2181,slave03:2181");
         conf.set("hbase.rootdir", "hdfs://master01:9000/hbase");
@@ -118,12 +118,13 @@ public class HBaseUtils {
      或者
      hbase(main):011:0> scan 'scores', FILTER => "FamilyFilter(<=,'binary:grc')"
      */
-    public ResultScanner FamilyFilter(String tableName,String family) throws Exception {
+    public static ResultScanner FamilyFilter(String tableName,String family) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         Filter filter = new FamilyFilter(CompareOp.LESS_OR_EQUAL, new BinaryComparator(Bytes.toBytes(family)));
         scan.setFilter(filter);
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return scanner;
     }
 
@@ -134,13 +135,14 @@ public class HBaseUtils {
      第二个参数为WritableByteArrayComparable
      hbase(main):221:0> scan 'scores', {FILTER => "QualifierFilter(<=,'binary:b')"}
      */
-    public ResultScanner QualifierFilter(String tableName, String column) throws Exception {
+    public static ResultScanner QualifierFilter(String tableName, String column) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         Filter filter = new QualifierFilter(CompareOp.LESS_OR_EQUAL, new BinaryComparator(Bytes.toBytes(column)));
         //这里输的参数是相应位置比大小，及当输入ms的时候，所有列名的第一位小于等于m，如果第一位相等则比较第二位的大小。一开始没理解，所以一开始参数输入math或course的时候把我整懵了。
         scan.setFilter(filter);
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return scanner;
 
     }
@@ -150,7 +152,7 @@ public class HBaseUtils {
      构造方法参数设置类似于FamilyFilter，符合条件的row都返回
      但是通过row查询时，如果知道开始结束的row，还是用scan的start和end方法更直接并且经测试速度快一半以上
      */
-    public ResultScanner RowFilter(String tableName, String reg) throws Exception {
+    public static ResultScanner RowFilter(String tableName, String reg) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         //这个参数EQUAL很重要，如果参数不同，查询的结果也会不同
@@ -159,6 +161,7 @@ public class HBaseUtils {
         Filter filter = new RowFilter(CompareOp.LESS_OR_EQUAL,  new BinaryComparator(Bytes.toBytes(reg)));
         scan.setFilter(filter);
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return  scanner;
         /**
          * 更推荐用下面的方法直接指定起止行，因为filter本质上还是会遍历全部数据，而设定起止行后会直接从指定行开始，指定行结束，效率高很多。
@@ -167,7 +170,7 @@ public class HBaseUtils {
         // scan.setStopRow(Bytes.toBytes( "AAAAAAAAABBB"));
     }
 
-    public Result GetByRowKey(String tableName, String reg) throws Exception {
+    public static Result GetByRowKey(String tableName, String reg) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Get scan = new Get(Bytes.toBytes(reg));
         Result scanner = table.get(scan);
@@ -183,7 +186,7 @@ public class HBaseUtils {
      或者
      hbase(main):004:0> scan 'scores', {FILTER => "PrefixFilter('li')"}
      */
-    public ResultScanner PrefixFilter(String tableName, String reg) throws Exception {
+    public static ResultScanner PrefixFilter(String tableName, String reg) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         Filter filter = new PrefixFilter(Bytes.toBytes(reg));
@@ -199,12 +202,13 @@ public class HBaseUtils {
      因此，只能采用一些策略来实现，主要还是采用正则表达式的方式。
      hbase(main):020:0> scan 'scores', {FILTER => "RowFilter(=,'regexstring:.*n01')"}
      */
-    public ResultScanner HouZui(String tableName) throws Exception {
+    public static ResultScanner HouZui(String tableName) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         Filter filter = new RowFilter(CompareOp.EQUAL,new RegexStringComparator(".*n01"));
         scan.setFilter(filter);
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return scanner;
     }
 
@@ -214,13 +218,14 @@ public class HBaseUtils {
      或者
      hbase(main):022:0> scan 'scores', {FILTER => org.apache.hadoop.hbase.filter.ColumnPrefixFilter.new(org.apache.hadoop.hbase.util.Bytes.toBytes('ar'))}
      */
-    public ResultScanner ColumnPrefixFilter(String tableName) throws Exception {
+    public static ResultScanner ColumnPrefixFilter(String tableName) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         byte[] prefix = Bytes.toBytes("ar");
         Filter filter = new ColumnPrefixFilter(prefix);
         scan.setFilter(filter);
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return scanner;
     }
 
@@ -230,13 +235,14 @@ public class HBaseUtils {
      b,在byte[][]中定义所有需要的列前缀，只要满足其中一条约束就会被返回（ColumnPrefixFilter的加强版），
      hbase(main):023:0> scan 'scores', {FILTER => "MultipleColumnPrefixFilter('ar','ma')"}
      */
-    public ResultScanner MultipleColumnPrefixFilter(String tableName) throws Exception {
+    public static ResultScanner MultipleColumnPrefixFilter(String tableName) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         byte[][] prefix = {Bytes.toBytes("ar"),Bytes.toBytes("ma")};
         Filter filter = new MultipleColumnPrefixFilter(prefix);
         scan.setFilter(filter);
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return scanner;
     }
 
@@ -247,7 +253,7 @@ public class HBaseUtils {
      c,可用size()取到列数，观察效果
      hbase(main):026:0> scan 'scores', {FILTER => "ColumnCountGetFilter(2)"}
      */
-    public Result columnCountGetFilter(String tableName, String rowKey,int columnIndex) throws Exception {
+    public static Result columnCountGetFilter(String tableName, String rowKey,int columnIndex) throws Exception {
         Table table = conn.getTable(TableName.valueOf("scores"));
         Get get = new Get(Bytes.toBytes("zhangsan01"));
         get.setFilter(new ColumnCountGetFilter(2));
@@ -258,6 +264,7 @@ public class HBaseUtils {
         byte[] value2 = result.getValue("course".getBytes(), "math".getBytes());
         System.out.println("course:art"+"-->"+new String(value1)+"  "
                 +"course:math"+"-->"+new String(value2));*/
+        table.close();
         return result;
     }
 
@@ -269,7 +276,7 @@ public class HBaseUtils {
      或者
      hbase(main):030:0> scan 'scores',{FILTER=> "ColumnPaginationFilter(2,1)"}
      */
-    public ResultScanner ColumnPaginationFilter(String tableName) throws Exception {
+    public static ResultScanner ColumnPaginationFilter(String tableName) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         Filter filter = new ColumnPaginationFilter(2,1);
@@ -277,6 +284,7 @@ public class HBaseUtils {
         //用addFamily增加列族后，会只返回指定列族的数据
         scan.addFamily(Bytes.toBytes("course"));
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return scanner;
     }
 
@@ -289,12 +297,13 @@ public class HBaseUtils {
      *一个列名是可以出现在多个列族中的，该过滤器将返回所有列族中匹配的列
      * hbase(main):032:0> scan 'scores',{FILTER=> "ColumnRangeFilter('a',true,'n',true)"}
      */
-    public ResultScanner ColumnRangeFilter(String tableName) throws Exception {
+    public static ResultScanner ColumnRangeFilter(String tableName) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         Filter filter = new ColumnRangeFilter(Bytes.toBytes("a"),true, Bytes.toBytes("n"),true);
         scan.setFilter(filter);
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return scanner;
     }
 
@@ -306,7 +315,7 @@ public class HBaseUtils {
      的进一步检查，如果从属的列找到，其值还必须通过值检查，然后就是时间戳必须考虑）
      hbase(main):036:0> scan 'scores',{FILTER=> "DependentColumnFilter('course','art',false,=,'binary:90')"}
      */
-    public ResultScanner DependentColumnFilter(String tableName) throws Exception {
+    public static ResultScanner DependentColumnFilter(String tableName) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         //Filter filter = new DependentColumnFilter(Bytes.toBytes("course"), Bytes.toBytes("art"),false);
@@ -316,6 +325,7 @@ public class HBaseUtils {
         //上面这四种情况输出的for循环中的内容也不一样，要做相应的修改，否则会报java.lang.NullPointerException
         scan.setFilter(filter);
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return scanner;
     }
 
@@ -324,12 +334,13 @@ public class HBaseUtils {
      如名字所示，结果只返回每行的第一个值对
      hbase(main):037:0> scan 'scores',{FILTER=> "FirstKeyOnlyFilter()"}
      */
-    public ResultScanner FirstKeyOnlyFilter(String tableName) throws Exception {
+    public static ResultScanner FirstKeyOnlyFilter(String tableName) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         Filter filter = new FirstKeyOnlyFilter();
         scan.setFilter(filter);
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return scanner;
     }
 
@@ -339,13 +350,14 @@ public class HBaseUtils {
      pair中第一个参数为模糊查询的string
      第二个参数为byte[]其中装与string位数相同的数值0或1,0表示该位必须与string中值相同，1表示可以不同
      */
-    public ResultScanner FuzzyRowFilter(String tableName) throws Exception {
+    public static ResultScanner FuzzyRowFilter(String tableName) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         Filter filter = new FuzzyRowFilter( Arrays.asList(new Pair<byte[], byte[]>(Bytes.toBytes("zhangsan01"),
                 new byte[] {0, 0, 0, 0 , 0, 0, 0, 0, 0, 1})));
         scan.setFilter(filter);
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return scanner;
     }
 
@@ -354,12 +366,13 @@ public class HBaseUtils {
      指定stopRow，程序在scan时从头扫描全部返回，直到stopRow停止（stopRow这行也会返回，然后scan停止）
      hbase(main):012:0> scan 'scores', {FILTER => "InclusiveStopFilter('zhangsan01')"}
      */
-    public ResultScanner InclusiveStopFilter(String tableName) throws Exception {
+    public static ResultScanner InclusiveStopFilter(String tableName) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         Filter filter = new InclusiveStopFilter(Bytes.toBytes("zhangsan01"));
         scan.setFilter(filter);
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return scanner;
     }
 
@@ -371,12 +384,13 @@ public class HBaseUtils {
      hbase(main):015:0> scan 'scores', {FILTER => "KeyOnlyFilter(false)"}
 
      */
-    public ResultScanner KeyOnlyFilter(String tableName) throws Exception {
+    public static ResultScanner KeyOnlyFilter(String tableName) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         Filter filter = new KeyOnlyFilter(true);
         scan.setFilter(filter);
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return scanner;
     }
 
@@ -385,12 +399,13 @@ public class HBaseUtils {
      取回XX条数据
      hbase(main):017:0> scan 'scores', {FILTER => "PageFilter(2)"}
      */
-    public ResultScanner PageFilter(String tableName) throws Exception {
+    public static ResultScanner PageFilter(String tableName) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         Filter filter = new PageFilter(2);
         scan.setFilter(filter);
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return scanner;
     }
 
@@ -398,13 +413,14 @@ public class HBaseUtils {
      16，RandomRowFilter
      参数小于0时一条查不出大于1值会返回所有，而想取随机行的话有效区间为0~1，值代表取到的几率
      */
-    public ResultScanner RandomRowFilter(String tableName) throws Exception {
+    public static ResultScanner RandomRowFilter(String tableName) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         Filter filter = new RandomRowFilter((float)0.5);
         //即使是0.5有时候也一条查不出来，有时候却全出来了，是几率并不是一定，那我就不知道这个具体有什么实际运用了。。。根据rowkey随机而不是根据列随机
         scan.setFilter(filter);
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return  scanner;
     }
 
@@ -416,7 +432,7 @@ public class HBaseUtils {
      c，如果找到该列，并且符合条件，前者返回所有列，后者返回除该列以外的所有列
      hbase(main):032:0> scan 'scores', {FILTER => "SingleColumnValueExcludeFilter('course','art',=,'substring:9')"}
      */
-    public ResultScanner SingleColumnValueFilter(String tableName) throws Exception {
+    public static ResultScanner SingleColumnValueFilter(String tableName) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         //完整匹配字节数组
@@ -428,6 +444,7 @@ public class HBaseUtils {
         Filter filter = new SingleColumnValueExcludeFilter(Bytes.toBytes("course"), Bytes.toBytes("art"), CompareOp.EQUAL,new SubstringComparator("9"));
         scan.setFilter(filter);
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return scanner;
     }
 
@@ -435,12 +452,13 @@ public class HBaseUtils {
      18，ValueFilter
      按value全数据库搜索（全部列的value均会被检索）
      */
-    public ResultScanner ValueFilter(String tableName) throws Exception {
+    public static ResultScanner ValueFilter(String tableName) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         Filter filter = new ValueFilter(CompareOp.NOT_EQUAL,new BinaryComparator(Bytes.toBytes("102")));
         scan.setFilter(filter);
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return scanner;
     }
 
@@ -451,7 +469,7 @@ public class HBaseUtils {
      在这个情况下，我们结合ValueFilter和SkipFilter共同实现该目的：
      scan.setFilter(new SkipFilter(new ValueFilter(CompareOp.NOT_EQUAL,new BinaryComparator(Bytes.toBytes(0))));
      */
-    public ResultScanner SkipFilter(String tableName) throws Exception {
+    public static ResultScanner SkipFilter(String tableName) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         Filter filter = new SkipFilter(new ValueFilter(CompareOp.NOT_EQUAL,new BinaryComparator(Bytes.toBytes("102"))));
@@ -459,6 +477,7 @@ public class HBaseUtils {
         //该过滤器需要配合其他过滤器来使用
         scan.setFilter(filter);
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return scanner;
     }
 
@@ -468,7 +487,7 @@ public class HBaseUtils {
      b，需设定List<Long> 存放所有需要检索的时间戳，
      hbase(main):039:0> scan 'scores', {FILTER => "TimestampsFilter(1498003561726,1498003601365)"}
      */
-    public ResultScanner TimestampsFilter(String tableName) throws Exception {
+    public static ResultScanner TimestampsFilter(String tableName) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         //ls中存放所有需要查找匹配的时间戳
@@ -479,6 +498,7 @@ public class HBaseUtils {
         Filter filter = new TimestampsFilter(ls);
         scan.setFilter(filter);
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return scanner;
     }
 
@@ -486,12 +506,13 @@ public class HBaseUtils {
      21，WhileMatchFilter
      相当于while执行，直到不match就break了返回了。
      */
-    public ResultScanner WhileMatchFilter(String tableName) throws Exception {
+    public static ResultScanner WhileMatchFilter(String tableName) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
         Filter filter = new WhileMatchFilter(new ValueFilter(CompareOp.NOT_EQUAL,new BinaryComparator(Bytes.toBytes("101"))));
         scan.setFilter(filter);
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return scanner;
     }
 
@@ -501,7 +522,7 @@ public class HBaseUtils {
      官网实例代码，两个“或”关系的过滤器的写法：
      hbase(main):009:0> scan 'scores', {FILTER => "PrefixFilter('zhang') OR QualifierFilter(>=,'binary:b')"}
      */
-    public ResultScanner FilterList(String tableName) throws Exception {
+    public static ResultScanner FilterList(String tableName) throws Exception {
         Table table = conn.getTable(TableName.valueOf(tableName));
         FilterList list = new FilterList(FilterList.Operator.MUST_PASS_ONE);   //数据只要满足一组过滤器中的一个就可以
         SingleColumnValueFilter filter1 = new SingleColumnValueFilter(Bytes.toBytes("course"), Bytes.toBytes("math"),CompareOp.EQUAL,new BinaryComparator(Bytes.toBytes("89")));
@@ -511,6 +532,7 @@ public class HBaseUtils {
         Scan scan = new Scan();
         scan.setFilter(list);
         ResultScanner scanner = table.getScanner(scan);
+        table.close();
         return scanner;
     }
 
@@ -520,8 +542,9 @@ public class HBaseUtils {
      * @param puts
      * @throws Exception
      */
-    public void PutList(String tableName, List<Put> puts) throws Exception{
+    public static void PutList(String tableName, List<Put> puts) throws Exception{
         Table table = conn.getTable(TableName.valueOf(tableName));
         table.put(puts);
+        table.close();
     }
 }

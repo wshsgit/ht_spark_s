@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false">
+    <!--日志目录地址-->
+    <property name="LOG_HOME" value="/logs/" />
+    <property name="LOG_LEVEL" value="INFO" />
+    <!-- 控制台输出 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符 -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{15}) - %highlight(%msg) %n</pattern>
+        </encoder>
+    </appender>
+    <!-- 设置分割 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 设置按尺寸和时间（同时满足）切割 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>${LOG_HOME}/%d{yyyy-MM-dd}/%d{yyyy-MM-dd}-sysWeb.%i.log
+            </fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <!--<maxHistory>30</maxHistory>-->
+            <!--<totalSizeCap>3GB</totalSizeCap>-->
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}-%msg%n</pattern>-->
+            <pattern>
+                   {   "timestamp":"%d{yyyy-MM-dd HH:mm:ss.SSS}",
+                       "thread":"%thread",
+                       "level":"%-5level",
+                       "logger":"%logger{36}",
+                       "msg":"%msg"
+                   }%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <!-- 业务日志 -->
+    <appender name="BusinessLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 设置按尺寸和时间（同时满足）切割 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>${LOG_HOME}/%d{yyyy-MM-dd}/%d{yyyy-MM-dd}-sysWeb-businessLog.%i.log
+            </fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <!--<maxHistory>30</maxHistory>-->
+            <!--<totalSizeCap>3GB</totalSizeCap>-->
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}-%msg%n</pattern>-->
+            <pattern>
+                {"time":"%d{yyyy-MM-dd HH:mm:ss.SSS}","level":"%-5level","msg":"%msg"}%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <!-- 操作跟踪测试日志 -->
+    <appender name="TrackLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 设置按尺寸和时间（同时满足）切割 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>${LOG_HOME}/%d{yyyy-MM-dd}/%d{yyyy-MM-dd}-sysWeb-trackLog.%i.log
+            </fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <!--<maxHistory>30</maxHistory>-->
+            <!--<totalSizeCap>3GB</totalSizeCap>-->
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}-%msg%n</pattern>-->
+            <pattern>
+                {"time":"%d{yyyy-MM-dd HH:mm:ss.SSS}","level":"%-5level","msg":"%msg"}%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <!-- 业务日志打印到BusinessLog文件-->Track
+    <logger name="BusinessLog" additivity="false" level="INFO">
+        <appender-ref ref="BusinessLogAppender"/>
+    </logger>
+    <!-- 跟踪、测试用日志打印到TrackLog文件-->Track
+    <logger name="TrackLog" additivity="false" level="INFO">
+        <appender-ref ref="TrackLogAppender"/>
+    </logger>
+
+    <!-- 日志输出级别 -->
+    <root level="${LOG_LEVEL}">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE" />
+    </root>
+</configuration>

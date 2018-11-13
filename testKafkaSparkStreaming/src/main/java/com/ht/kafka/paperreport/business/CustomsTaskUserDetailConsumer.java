@@ -41,7 +41,6 @@ public class CustomsTaskUserDetailConsumer {
         while (true) {
             // 读取数据，读取超时时间为100ms
             ConsumerRecords<String, String> records = consumer.poll(100);
-            HBaseUtils hBaseUtils = new HBaseUtils();
             for (ConsumerRecord<String, String> record : records) {
                 JSONObject jsonObject = JSONObject.parseObject(record.value());
 
@@ -61,7 +60,7 @@ public class CustomsTaskUserDetailConsumer {
                 put_UserID.addColumn(Bytes.toBytes("i"), Bytes.toBytes("UserID"), Bytes.toBytes(String.valueOf(String.valueOf(0))));
                 puts.add(put_UserID);
                 try {
-                    hBaseUtils.PutList("t_customs_task_user_detail",puts);
+                    HBaseUtils.PutList("t_customs_task_user_detail",puts);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

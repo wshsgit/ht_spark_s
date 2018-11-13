@@ -50,7 +50,6 @@ public class Customs_Single_Processer {
     String question_id;
     String user_id;
     int isright;
-    HBaseUtils hBaseUtils = new HBaseUtils();
 
     HashMap<Long,List<Integer>> question_point_map = new HashMap<>();
     HashMap<Long,Long> paper_customs_map = new HashMap<>();
@@ -85,7 +84,7 @@ public class Customs_Single_Processer {
             ResultScanner current_question_points_result = null;
             try {
                 String hBase_questionpoint_table = "t_question_point";
-                current_question_points_result = hBaseUtils.PrefixFilter(hBase_questionpoint_table, question_id + "_");
+                current_question_points_result = HBaseUtils.PrefixFilter(hBase_questionpoint_table, question_id + "_");
             } catch (Exception e) {
                 e.printStackTrace();
                 return;
@@ -99,6 +98,11 @@ public class Customs_Single_Processer {
                     Integer pointid = Integer.parseInt(strings[1].toString());
 
                     current_question_points.add(pointid);
+                }
+                try{
+                    current_question_points_result.close();
+                }catch (Exception e){
+
                 }
             }
             if (current_question_points.size() >0) {
@@ -141,7 +145,7 @@ public class Customs_Single_Processer {
             ResultScanner current_paper_customs_result = null;
             try {
                 String hBasepaper_customs_table = "t_customs_task_user_detail";
-                current_paper_customs_result = hBaseUtils.PrefixFilter(hBasepaper_customs_table, question_id + "_");
+                current_paper_customs_result = HBaseUtils.PrefixFilter(hBasepaper_customs_table, question_id + "_");
             } catch (Exception e) {
                 e.printStackTrace();
                 return;
@@ -154,6 +158,11 @@ public class Customs_Single_Processer {
                     customs_id = Long.parseLong(strings[1].toString());
 
                     paper_customs_map.put(Long.parseLong(testpaper_user_id),customs_id);
+                }
+                try{
+                    current_paper_customs_result.close();
+                }catch (Exception e){
+
                 }
             }
             if (customs_id!= null && customs_id > 0) {
@@ -183,7 +192,7 @@ public class Customs_Single_Processer {
     {
         Result paperSummaryResult = null;
         try {
-            paperSummaryResult = hBaseUtils.GetByRowKey(hBase_TableName, rowKey);
+            paperSummaryResult = HBaseUtils.GetByRowKey(hBase_TableName, rowKey);
         } catch (Exception e) {
             e.printStackTrace();
             return;
@@ -336,7 +345,7 @@ public class Customs_Single_Processer {
         }
 
         try {
-            hBaseUtils.PutList(hBase_TableName,updateCells);
+            HBaseUtils.PutList(hBase_TableName,updateCells);
         } catch (Exception e) {
             e.printStackTrace();
         }

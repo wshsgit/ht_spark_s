@@ -39,7 +39,6 @@ public class QuestionPointConsumer {
         while (true) {
             // 读取数据，读取超时时间为100ms
             ConsumerRecords<String, String> records = consumer.poll(100);
-            HBaseUtils hBaseUtils = new HBaseUtils();
             for (ConsumerRecord<String, String> record : records) {
                 JSONObject jsonObject = JSONObject.parseObject(record.value());
 
@@ -53,7 +52,7 @@ public class QuestionPointConsumer {
                 put.addColumn(Bytes.toBytes("qp"), Bytes.toBytes("coeffcient"), Bytes.toBytes(String.valueOf(String.valueOf(0))));
                 puts.add(put);
                 try {
-                    hBaseUtils.PutList("t_question_point",puts);
+                    HBaseUtils.PutList("t_question_point",puts);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
