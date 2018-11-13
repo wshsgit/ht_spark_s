@@ -49,7 +49,10 @@ public class Customs_Single_Processer {
     String testpaper_user_id;
     String question_id;
     String user_id;
+    String testpaper_id;
     int isright;
+    Long customs_id;
+    Long task_id;
 
     HashMap<Long,List<Integer>> question_point_map = new HashMap<>();
     HashMap<Long,Long> paper_customs_map = new HashMap<>();
@@ -63,7 +66,7 @@ public class Customs_Single_Processer {
         Long testPaper_User_ID = jsonObject.getLong("TestPaper_User_ID");
         Long questionID = jsonObject.getLong("QuestionID");
         Long course_id = jsonObject.getLong("BatchCourses_ID");
-        Long testpaper_id = jsonObject.getLong("TestPaper_ID");
+        Long testPaper_ID = jsonObject.getLong("TestPaper_ID");
         Long createUser = jsonObject.getLong("CreateUser");
         Integer isRight = jsonObject.getInteger("IsRight");
 
@@ -110,6 +113,35 @@ public class Customs_Single_Processer {
             }
         }
 
+        customs_id = paper_customs_map.get(testpaper_user_id);
+        if (customs_id==null){
+            //从Hbase里读取
+            ResultScanner current_paper_customs_result = null;
+            try {
+                String hBasepaper_customs_table = "t_customs_task_user_detail";
+                current_paper_customs_result = HBaseUtils.PrefixFilter(hBasepaper_customs_table, testpaper_user_id + "_");
+            } catch (Exception e) {
+                e.printStackTrace();
+                return;
+            }
+
+            if (current_paper_customs_result!=null) {
+
+                Result result = current_paper_customs_result.next();
+                String question_point_rowkey = new String(result.getRow());
+                String[] strings = question_point_rowkey.split("_");
+                task_id = Long.parseLong(strings[1].toString());
+                customs_id = Long.parseLong(strings[2].toString());
+
+                paper_customs_map.put(Long.parseLong(testpaper_user_id),customs_id);
+                try{
+                    current_paper_customs_result.close();
+                }catch (Exception e){
+
+                }
+            }
+        }
+
     }
 
 
@@ -122,7 +154,7 @@ public class Customs_Single_Processer {
         // 排行榜计算 基于redis
         {
             if (isright==1){
-                String paperSummaryRank_key = "paperSummaryRank_" + testpaper_user_id;
+                String paperSummaryRank_key = "paperSummaryRank_" + task_id;
                 double paper_score = JRedisUtil.getInstance().sortSet().zscore( paperSummaryRank_key,user_id.toString());
                 if (paper_score<=0){
                     paper_score = 1;
@@ -138,39 +170,12 @@ public class Customs_Single_Processer {
     }
 
     public void Process_Customs(){
-        Long customs_id = paper_customs_map.get(testpaper_user_id);
-        if (customs_id==null){
-            //从Hbase里读取
 
-            ResultScanner current_paper_customs_result = null;
-            try {
-                String hBasepaper_customs_table = "t_customs_task_user_detail";
-                current_paper_customs_result = HBaseUtils.PrefixFilter(hBasepaper_customs_table, testpaper_user_id + "_");
-            } catch (Exception e) {
-                e.printStackTrace();
-                return;
-            }
-
-            if (current_paper_customs_result!=null) {
-                for (Result result : current_paper_customs_result) {
-                    String question_point_rowkey = new String(result.getRow());
-                    String[] strings = question_point_rowkey.split("_");
-                    customs_id = Long.parseLong(strings[1].toString());
-
-                    paper_customs_map.put(Long.parseLong(testpaper_user_id),customs_id);
-                }
-                try{
-                    current_paper_customs_result.close();
-                }catch (Exception e){
-
-                }
-            }
-            if (customs_id!= null && customs_id > 0) {
-                paper_customs_map.put(Long.valueOf(testpaper_user_id), customs_id);
-                String hBase_TableName = "t_customs_summary";
-                String rowKey = user_id  + "_" + customs_id;
-                Process_Common(hBase_TableName,rowKey);
-            }
+        if (customs_id!= null && customs_id > 0) {
+            paper_customs_map.put(Long.valueOf(testpaper_user_id), customs_id);
+            String hBase_TableName = "t_customs_summary";
+            String rowKey = user_id  + "_" + customs_id;
+            Process_Common(hBase_TableName,rowKey);
         }
         // 排行榜计算 基于redis
         {

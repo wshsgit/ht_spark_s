@@ -49,15 +49,15 @@ public class CustomsTaskUserDetailConsumer {
                 Long customsID = jsonObject.getLong("CustomsID");
                 Long taskID = jsonObject.getLong("TaskID");
                 Long userID = jsonObject.getLong("UserID");
-                String rowkey = testPaper_user_id + "_" + customsID;
+                String rowkey = testPaper_user_id + "_" + taskID + "_" + customsID;
 
                 List<Put> puts = new ArrayList<>();
                 Put put_Task = new Put(Bytes.toBytes(rowkey));
-                put_Task.addColumn(Bytes.toBytes("i"), Bytes.toBytes("TaskID"), Bytes.toBytes(String.valueOf(String.valueOf(0))));
+                put_Task.addColumn(Bytes.toBytes("i"), Bytes.toBytes("TaskID"), Bytes.toBytes(String.valueOf(String.valueOf(taskID))));
                 puts.add(put_Task);
 
                 Put put_UserID = new Put(Bytes.toBytes(rowkey));
-                put_UserID.addColumn(Bytes.toBytes("i"), Bytes.toBytes("UserID"), Bytes.toBytes(String.valueOf(String.valueOf(0))));
+                put_UserID.addColumn(Bytes.toBytes("i"), Bytes.toBytes("UserID"), Bytes.toBytes(String.valueOf(String.valueOf(userID))));
                 puts.add(put_UserID);
                 try {
                     HBaseUtils.PutList("t_customs_task_user_detail",puts);
