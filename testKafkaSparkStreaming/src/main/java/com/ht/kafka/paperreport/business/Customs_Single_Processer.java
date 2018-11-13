@@ -128,12 +128,14 @@ public class Customs_Single_Processer {
             if (current_paper_customs_result!=null) {
 
                 Result result = current_paper_customs_result.next();
-                String question_point_rowkey = new String(result.getRow());
-                String[] strings = question_point_rowkey.split("_");
-                task_id = Long.parseLong(strings[1].toString());
-                customs_id = Long.parseLong(strings[2].toString());
+                if (result != null) {
+                    String question_point_rowkey = new String(result.getRow());
+                    String[] strings = question_point_rowkey.split("_");
+                    task_id = Long.parseLong(strings[1].toString());
+                    customs_id = Long.parseLong(strings[2].toString());
 
-                paper_customs_map.put(Long.parseLong(testpaper_user_id),customs_id);
+                    paper_customs_map.put(Long.parseLong(testpaper_user_id), customs_id);
+                }
                 try{
                     current_paper_customs_result.close();
                 }catch (Exception e){
