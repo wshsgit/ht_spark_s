@@ -16,7 +16,7 @@ public class KafkaProcessSummary {
         props.put("bootstrap.servers", "master01:9092,slave02:9092,slave03:9092");
         //props.put("bootstrap.servers", "59.110.216.70:9092,47.95.1.29:9092,59.110.166.163:9092");
         // 制定consumer group
-        props.put("group.id", "user_paper_summary_01");
+        props.put("group.id", "user_paper_summary");
         // 是否自动确认offset
         props.put("enable.auto.commit", "true");
         // 自动确认offset的时间间隔
