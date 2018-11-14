@@ -295,7 +295,7 @@ public class Customs_Single_Processer {
             /**
              * 第一次保存的时候存取业务数据
              */
-            if (task_id!=null&&task_id>0 && p_count == 1) {
+            if (task_id != null && task_id >0 && q_count == 1) {
                 Put b_put = new Put(Bytes.toBytes(rowKey));
                 b_put.addColumn(Bytes.toBytes("b"), Bytes.toBytes("TaskID"), Bytes.toBytes(String.valueOf(task_id)));
                 updateCells.add(b_put);
