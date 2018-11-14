@@ -35,7 +35,7 @@ public class KafkaProcessSummary {
         /*consumer.assign(Arrays.asList(new TopicPartition(topicName, 0)));
         consumer.seekToBeginning(Arrays.asList(new TopicPartition(topicName, 0)));//不改变当前offset
         //consumer.seek(new TopicPartition(topicName, 0), 10);//不改变当前offset*/
-
+        //JRedisUtil.getInstance().strings().set("Kafka_paperSummary",String.valueOf(0));//测试时清除offset使用
         Logger logger = LoggerFactory.getLogger(KafkaProcessSummary.class);
         HashMap<Long,List<Integer>> question_point_map = new HashMap<>();
         HashMap<Long,String> paper_customs_map = new HashMap<>();

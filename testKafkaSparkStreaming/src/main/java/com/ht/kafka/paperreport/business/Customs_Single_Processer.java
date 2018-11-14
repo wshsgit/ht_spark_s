@@ -300,6 +300,11 @@ public class Customs_Single_Processer {
                 b_put.addColumn(Bytes.toBytes("b"), Bytes.toBytes("TaskID"), Bytes.toBytes(String.valueOf(task_id)));
                 updateCells.add(b_put);
             }
+            if (customs_id != null && customs_id >0 && q_count == 1) {
+                Put b_put = new Put(Bytes.toBytes(rowKey));
+                b_put.addColumn(Bytes.toBytes("b"), Bytes.toBytes("CustomsID"), Bytes.toBytes(String.valueOf(customs_id)));
+                updateCells.add(b_put);
+            }
         }
 
         {
