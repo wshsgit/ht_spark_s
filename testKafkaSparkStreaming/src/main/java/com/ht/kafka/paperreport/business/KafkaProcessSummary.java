@@ -32,7 +32,7 @@ public class KafkaProcessSummary {
         consumer.subscribe(Arrays.asList("tzuser_paper_summary"));
         Logger logger = LoggerFactory.getLogger(KafkaProcessSummary.class);
         HashMap<Long,List<Integer>> question_point_map = new HashMap<>();
-        HashMap<Long,Long> paper_customs_map = new HashMap<>();
+        HashMap<Long,String> paper_customs_map = new HashMap<>();
         while (true) {
             // 读取数据，读取超时时间为100ms
             ConsumerRecords<String, String> records = consumer.poll(100);

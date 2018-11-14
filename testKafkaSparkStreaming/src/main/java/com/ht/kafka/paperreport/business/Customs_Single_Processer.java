@@ -55,10 +55,10 @@ public class Customs_Single_Processer {
     Long task_id;
 
     HashMap<Long,List<Integer>> question_point_map = new HashMap<>();
-    HashMap<Long,Long> paper_customs_map = new HashMap<>();
+    HashMap<Long,String> paper_customs_map = new HashMap<>();
     List<Integer> current_question_points = question_point_map.get(question_id);
 
-    public Customs_Single_Processer(ConsumerRecord<String, String> record, HashMap<Long,List<Integer>> question_point_map,HashMap<Long,Long> paper_customs_map) throws Exception {
+    public Customs_Single_Processer(ConsumerRecord<String, String> record, HashMap<Long,List<Integer>> question_point_map,HashMap<Long,String> paper_customs_map) throws Exception {
         //id,testpaperuser_id,questionid,courseid,paperid,userid,
         JSONObject jsonObject = JSONObject.parseObject(record.value());
 
@@ -113,8 +113,15 @@ public class Customs_Single_Processer {
             }
         }
 
-        customs_id = paper_customs_map.get(testpaper_user_id);
-        if (customs_id==null){
+        String task_customs = paper_customs_map.get(testpaper_user_id);
+
+        if(task_customs != null && !task_customs.equals("")){
+            String[] s_list = task_customs.split("_");
+            task_id = Long.parseLong(s_list[0]);
+            customs_id = Long.parseLong(s_list[1]);
+        }
+
+        if (customs_id==null||customs_id==0){
             //从Hbase里读取
             ResultScanner current_paper_customs_result = null;
             try {
@@ -133,8 +140,10 @@ public class Customs_Single_Processer {
                     String[] strings = question_point_rowkey.split("_");
                     task_id = Long.parseLong(strings[1].toString());
                     customs_id = Long.parseLong(strings[2].toString());
+                    if(customs_id!=null&&customs_id > 0&&task_id!=null&&task_id > 0) {
+                        paper_customs_map.put(Long.parseLong(testpaper_user_id), task_id + "_" + customs_id);
+                    }
 
-                    paper_customs_map.put(Long.parseLong(testpaper_user_id), customs_id);
                 }
                 try{
                     current_paper_customs_result.close();
@@ -167,14 +176,11 @@ public class Customs_Single_Processer {
                 JRedisUtil.getInstance().sortSet().zadd(paperSummaryRank_key, paper_score, user_id.toString());
             }
         }
-
-
     }
 
     public void Process_Customs(){
 
         if (customs_id!= null && customs_id > 0) {
-            paper_customs_map.put(Long.valueOf(testpaper_user_id), customs_id);
             String hBase_TableName = "t_customs_summary";
             String rowKey = user_id  + "_" + customs_id;
             Process_Common(hBase_TableName,rowKey);

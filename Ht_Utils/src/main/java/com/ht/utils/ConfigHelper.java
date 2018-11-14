@@ -17,7 +17,7 @@ public class ConfigHelper {
         prop = new Properties();
 
         try{
-            InputStream in = ConfigHelper.class.getResourceAsStream("/application.properties");
+            InputStream in = ConfigHelper.class.getResourceAsStream("/common.properties");
             prop.load(in);
         }catch(IOException e){
             System.out.println (e.getMessage());
@@ -69,6 +69,5 @@ public class ConfigHelper {
         String values[]={"penghuaiyi","dsdsdgsgd"};
         String msg=ConfigHelper.getProperty("zx.log.circuit.newCircuit",values);
         System.out.println(msg);
-
     }
 }
