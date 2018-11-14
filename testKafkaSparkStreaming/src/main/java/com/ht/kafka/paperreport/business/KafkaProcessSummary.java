@@ -1,6 +1,7 @@
 package com.ht.kafka.paperreport.business;
 
 import com.ht.utils.HBaseUtils;
+import com.ht.utils.JRedisUtil;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -30,6 +31,11 @@ public class KafkaProcessSummary {
 
         // 指定要消费的topic, 可同时处理多个
         consumer.subscribe(Arrays.asList("tzuser_paper_summary"));
+
+        /*consumer.assign(Arrays.asList(new TopicPartition(topicName, 0)));
+        consumer.seekToBeginning(Arrays.asList(new TopicPartition(topicName, 0)));//不改变当前offset
+        //consumer.seek(new TopicPartition(topicName, 0), 10);//不改变当前offset*/
+
         Logger logger = LoggerFactory.getLogger(KafkaProcessSummary.class);
         HashMap<Long,List<Integer>> question_point_map = new HashMap<>();
         HashMap<Long,String> paper_customs_map = new HashMap<>();
@@ -37,6 +43,21 @@ public class KafkaProcessSummary {
             // 读取数据，读取超时时间为100ms
             ConsumerRecords<String, String> records = consumer.poll(100);
             for (ConsumerRecord<String, String> record : records) {
+                long t_offset = 0;
+                try{
+                    String offsetStringValue = JRedisUtil.getInstance().strings().get("Kafka_paperSummary");
+                    if(offsetStringValue != null && !offsetStringValue.equals("")){
+                        t_offset =Long.parseLong(offsetStringValue);
+                    }
+
+                }catch (Exception e){
+
+                }
+                if (record.offset()!=0 && record.offset() <= t_offset){
+                    continue;
+                }
+
+
                 Customs_Single_Processer processer = null;
                 try {
                     processer = new Customs_Single_Processer(record,question_point_map,paper_customs_map);
@@ -48,6 +69,7 @@ public class KafkaProcessSummary {
                 processer.Process_Customs();
                 System.out.printf("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
                 logger.info("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
+                JRedisUtil.getInstance().strings().set("Kafka_paperSummary",String.valueOf(record.offset()));
             }
         }
     }
