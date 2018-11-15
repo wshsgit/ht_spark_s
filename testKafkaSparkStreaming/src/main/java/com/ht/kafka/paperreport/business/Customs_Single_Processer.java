@@ -175,6 +175,10 @@ public class Customs_Single_Processer {
                 }
                 JRedisUtil.getInstance().sortSet().zadd(paperSummaryRank_key, paper_score, user_id.toString());
             }
+            if(task_id !=null && task_id > 0){
+                String paperSummaryRank_key = "paperSummaryRank_rightpercent_" + task_id;
+                JRedisUtil.getInstance().sortSet().zadd(paperSummaryRank_key, q_r_count*1.0/q_count, user_id.toString());
+            }
         }
     }
 
@@ -197,6 +201,10 @@ public class Customs_Single_Processer {
                     customs_score += 1;
                 }
                 JRedisUtil.getInstance().sortSet().zadd(customsRank_key, customs_score, user_id.toString());
+            }
+            if(customs_id!= null && customs_id > 0){
+                String paperSummaryRank_key = "customsRank_rightpercent_" + customs_id;
+                JRedisUtil.getInstance().sortSet().zadd(paperSummaryRank_key, q_r_count*1.0/q_count, user_id.toString());
             }
         }
     }
